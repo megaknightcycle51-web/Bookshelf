@@ -1,0 +1,224 @@
+// ── DATA ──
+let sections = [];
+let currentSlide = 0;
+let activeBookRef = null; // { sectionIdx, bookIdx }
+
+function defaultBook() {
+  return {
+    title: 'Book Title',
+    author: 'Author | Publisher',
+    coverUrl: null,
+    detail: {
+      genre: 'Fiction',
+      ageRating: '13+',
+      rating: '—/10',
+      year: 'London · 2024',
+      review: 'Write your review here. Share your thoughts about the story, characters, and what made this book memorable.'
+    }
+  };
+}
+
+function defaultSection(label) {
+  return {
+    label: label || `Section ${sections.length + 1}`,
+    books: Array.from({ length: 6 }, () => defaultBook())
+  };
+}
+
+// Init with 1 section
+sections.push(defaultSection('Section 1'));
+renderCarousel();
+
+// ── CAROUSEL ──
+function renderCarousel() {
+  const track = document.getElementById('carouselTrack');
+  const dots = document.getElementById('slideDots');
+  track.innerHTML = '';
+  dots.innerHTML = '';
+
+  sections.forEach((sec, si) => {
+    const slide = document.createElement('div');
+    slide.className = 'shelf-slide';
+    slide.innerHTML = buildSlide(sec, si);
+    track.appendChild(slide);
+
+    const dot = document.createElement('button');
+    dot.className = 'slide-dot' + (si === currentSlide ? ' active' : '');
+    dot.onclick = () => goToSlide(si);
+    dots.appendChild(dot);
+  });
+
+  updateCarouselPos();
+  document.getElementById('prevBtn').disabled = currentSlide === 0;
+  document.getElementById('nextBtn').disabled = currentSlide === sections.length - 1;
+
+  // Re-attach listeners
+  attachBookListeners();
+}
+
+function buildSlide(sec, si) {
+  const rows = [
+    sec.books.slice(0, 3),
+    sec.books.slice(3, 6)
+  ];
+
+  let html = '';
+  rows.forEach((rowBooks, ri) => {
+    html += `<div class="shelf-row">
+      <div class="shelf-books">`;
+    rowBooks.forEach((book, bi) => {
+      const globalIdx = ri * 3 + bi;
+      const coverId = `cover-${si}-${globalIdx}`;
+      const titleId = `btitle-${si}-${globalIdx}`;
+      const authorId = `bauthor-${si}-${globalIdx}`;
+
+      const coverInner = book.coverUrl
+        ? `<img src="${book.coverUrl}" alt="book cover">`
+        : `<div class="empty-cover">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="2" width="14" height="20" rx="1"/><path d="M7 6h6M7 10h6M7 14h4"/></svg>
+            <span>Add Cover</span>
+          </div>`;
+
+      html += `
+        <div class="book-slot" data-si="${si}" data-bi="${globalIdx}">
+          <div class="book-meta">
+            <div class="book-title-text" id="${titleId}" contenteditable="true"
+              data-si="${si}" data-bi="${globalIdx}" data-field="title"
+            >${esc(book.title)}</div>
+            <div class="book-author-text" id="${authorId}" contenteditable="true"
+              data-si="${si}" data-bi="${globalIdx}" data-field="author"
+            >${esc(book.author)}</div>
+          </div>
+          <div class="book-cover" id="${coverId}" data-si="${si}" data-bi="${globalIdx}">
+            ${coverInner}
+            <div class="upload-overlay">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Upload Cover
+            </div>
+          </div>
+        </div>`;
+    });
+    html += `</div><div class="shelf-plank"></div></div>`;
+  });
+  return html;
+}
+
+function attachBookListeners() {
+  // Title / author contenteditable save on blur
+  document.querySelectorAll('[data-field]').forEach(el => {
+    el.addEventListener('blur', function () {
+      const si = parseInt(this.dataset.si);
+      const bi = parseInt(this.dataset.bi);
+      const field = this.dataset.field;
+      sections[si].books[bi][field] = this.innerText.trim();
+    });
+    // Prevent enter
+    el.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); el.blur(); }
+    });
+  });
+
+  attachCoverClickHandler();
+}
+
+function attachCoverClickHandler() {
+  document.querySelectorAll('.book-cover').forEach(el => {
+    el.addEventListener('click', function (e) {
+      const si = parseInt(this.dataset.si);
+      const bi = parseInt(this.dataset.bi);
+      if (e.target.closest('.upload-overlay') || e.target.closest('.empty-cover')) {
+        activeBookRef = { si, bi };
+        document.getElementById('fileInput').click();
+        return;
+      }
+      openDetail(si, bi);
+    });
+  });
+}
+
+// File input change
+document.getElementById('fileInput').addEventListener('change', function () {
+  if (!this.files || !this.files[0] || !activeBookRef) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    sections[activeBookRef.si].books[activeBookRef.bi].coverUrl = e.target.result;
+    renderCarousel();
+  };
+  reader.readAsDataURL(this.files[0]);
+  this.value = '';
+});
+
+function slideCarousel(dir) {
+  goToSlide(currentSlide + dir);
+}
+
+function goToSlide(idx) {
+  currentSlide = Math.max(0, Math.min(idx, sections.length - 1));
+  updateCarouselPos();
+  document.querySelectorAll('.slide-dot').forEach((d, i) => {
+    d.classList.toggle('active', i === currentSlide);
+  });
+  document.getElementById('prevBtn').disabled = currentSlide === 0;
+  document.getElementById('nextBtn').disabled = currentSlide === sections.length - 1;
+}
+
+function updateCarouselPos() {
+  document.getElementById('carouselTrack').style.transform = `translateX(-${currentSlide * 100}%)`;
+}
+
+function addSection() {
+  sections.push(defaultSection(`Section ${sections.length + 1}`));
+  renderCarousel();
+  goToSlide(sections.length - 1);
+}
+
+// ── DETAIL VIEW ──
+function openDetail(si, bi) {
+  const book = sections[si].books[bi];
+  const d = book.detail;
+
+  document.getElementById('dTitle').innerText = book.title;
+  document.getElementById('dAuthor').innerText = 'By ' + book.author;
+  document.getElementById('dGenre').innerText = d.genre;
+  document.getElementById('dAge').innerText = d.ageRating;
+  document.getElementById('dRating').innerText = d.rating;
+  document.getElementById('dYear').innerText = d.year;
+  document.getElementById('dReview').innerText = d.review;
+
+  const coverEl = document.getElementById('detailCover');
+  if (book.coverUrl) {
+    coverEl.innerHTML = `<img src="${book.coverUrl}" alt="cover">`;
+  } else {
+    coverEl.innerHTML = `<div class="no-img">No cover</div>`;
+  }
+
+  window._detailRef = { si, bi };
+
+  document.getElementById('shelf-view').style.display = 'none';
+  document.getElementById('detail-view').style.display = 'block';
+  window.scrollTo(0, 0);
+}
+
+function closeDetail() {
+  const { si, bi } = window._detailRef || {};
+  if (si !== undefined) {
+    const book = sections[si].books[bi];
+    book.detail.genre = document.getElementById('dGenre').innerText.trim();
+    book.detail.ageRating = document.getElementById('dAge').innerText.trim();
+    book.detail.rating = document.getElementById('dRating').innerText.trim();
+    book.detail.year = document.getElementById('dYear').innerText.trim();
+    book.detail.review = document.getElementById('dReview').innerText.trim();
+
+    const rawAuthor = document.getElementById('dAuthor').innerText.replace(/^By\s*/i, '').trim();
+    book.title = document.getElementById('dTitle').innerText.trim();
+    book.author = rawAuthor;
+  }
+
+  document.getElementById('detail-view').style.display = 'none';
+  document.getElementById('shelf-view').style.display = 'flex';
+  renderCarousel();
+}
+
+function esc(str) {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
