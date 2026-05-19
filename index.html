@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Book Collection</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Special+Elite&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ══════════════════════════════
+     SHELF VIEW
+══════════════════════════════════ -->
+<div id="shelf-view">
+  <div class="shelf-header">
+    <div class="date-label" id="headerDate" contenteditable="true" title="Click to edit">MY BOOKSHELF</div>
+    <div class="snowflake">✻</div>
+    <div class="title-label">RECOMMENDED READS</div>
+  </div>
+
+  <div class="shelf-title-area">
+    <h1>
+      <span id="mainTitleLeft" contenteditable="true" title="Click to edit">My</span>
+      <span id="mainTitleMid" contenteditable="true" title="Click to edit" style="background:none;color:#2a2a2a;">Book</span>
+      <span id="mainTitleRight" contenteditable="true" title="Click to edit" style="background:none;color:#2a2a2a;">Collection</span>
+      &nbsp;
+      <div class="title-bubble">
+        <span id="titleHighlight" contenteditable="true" title="Click to edit">📚 Shelf</span>
+      </div>
+    </h1>
+  </div>
+
+  <div class="carousel-wrapper" id="carouselWrapper">
+    <button class="carousel-nav prev" id="prevBtn" onclick="slideCarousel(-1)" disabled>&#8592;</button>
+    <div class="carousel-track" id="carouselTrack"></div>
+    <button class="carousel-nav next" id="nextBtn" onclick="slideCarousel(1)">&#8594;</button>
+    <div class="slide-dots" id="slideDots"></div>
+    <button class="add-section-btn" onclick="addSection()">＋ Add Section</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     DETAIL VIEW
+══════════════════════════════════ -->
+<div id="detail-view">
+  <div class="detail-inner">
+    <button class="back-btn" onclick="closeDetail()">&#8592; Back to Shelf</button>
+
+    <div style="position:relative;">
+      <div class="sh-badge">
+        <div class="sh-icon">🔍</div>
+        <div>SHERLOCK</div>
+        <div>HOLMES</div>
+        <div>221B</div>
+      </div>
+
+      <div class="detail-top">
+        <div class="detail-cover" id="detailCover">
+          <div class="no-img">No cover</div>
+        </div>
+
+        <div class="detail-info-block">
+          <div class="detail-title" id="dTitle" contenteditable="true" title="Click to edit">Book Title</div>
+          <div class="detail-author" id="dAuthor" contenteditable="true" title="Click to edit">By Author Name</div>
+          <div class="london-label" id="dYear" contenteditable="true" title="Click to edit">London · 2024</div>
+
+          <div style="height:16px;"></div>
+
+          <div class="info-card">
+            <div class="info-row">
+              <span class="info-label">Genre</span>
+              <span class="info-colon">:</span>
+              <div class="info-value" id="dGenre" contenteditable="true" title="Click to edit">Fiction</div>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Age Rating</span>
+              <span class="info-colon">:</span>
+              <div class="info-value" id="dAge" contenteditable="true" title="Click to edit">13+</div>
+            </div>
+            <hr class="info-divider">
+            <div class="rating-row">
+              <span class="personal-rating-label">Personal<br>Rating</span>
+              <div class="rating-number" id="dRating" contenteditable="true" title="Click to edit">8/10</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="review-section">
+      <span class="big-quote">"</span>
+      <div class="review-text" id="dReview" contenteditable="true" title="Click to edit"
+        placeholder="Write your review here...">Write your review here. Share your thoughts about the story, characters, writing style, and what made this book memorable to you.</div>
+    </div>
+
+    <div class="detail-footer">
+      <div class="violin-img">🎻</div>
+      <div class="baker-st-badge">
+        <div class="baker-st-num">221<span>B</span></div>
+        <div class="baker-st-sub">Baker St.</div>
+      </div>
+      <div class="pipe-img">🪈</div>
+    </div>
+  </div>
+  <div class="edit-hint">✎ Click any text to edit</div>
+</div>
+
+<!-- Hidden file input -->
+<input type="file" id="fileInput" accept="image/*">
+
+<script src="script.js"></script>
+</body>
+</html>
